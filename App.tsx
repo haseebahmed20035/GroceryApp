@@ -6,6 +6,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import LoginScreen from './src/screens/LoginScreen';
 import Dashboard from './src/screens/Dashboard';
+import CategoryScreen from './src/screens/CategoryScreen';
+import ViewAllCategories from './src/screens/ViewAllCategories';
 
 const Stack = createNativeStackNavigator();
 
@@ -24,6 +26,8 @@ export default function App() {
             component={Dashboard}
             options={{ headerShown: false }}
           />
+           <Stack.Screen name="CategoryScreen" component={CategoryScreen} />
+        <Stack.Screen name="ViewAllCategories" component={ViewAllCategories} />
         </Stack.Navigator>
       </NavigationContainer>
     </GestureHandlerRootView>

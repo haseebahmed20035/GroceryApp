@@ -23,7 +23,7 @@ const LoginScreen = ({navigation}) => {
 
       <View style={styles.logoBox}>
         <Image
-          source={require('./assets/logo.png')}
+          source={require('../assets/logo.png')}
           style={styles.logo}
           resizeMode="contain"
         />
