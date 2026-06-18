@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from 'react'
 import {
   View,
   Text,
@@ -7,50 +7,84 @@ import {
   StyleSheet,
   Image,
   SafeAreaView,
-} from 'react-native';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import { ScrollView } from 'react-native-gesture-handler';
+  Alert,
+  ActivityIndicator
+} from 'react-native'
+import { Ionicons, MaterialIcons } from '@expo/vector-icons'
+import { ScrollView } from 'react-native-gesture-handler'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { request } from '../api/api'
+const LoginScreen = ({ navigation }) => {
+  const [showPassword, setShowPassword] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Email and password required')
+      return
+    }
 
-const LoginScreen = ({navigation}) => {
-  const [showPassword, setShowPassword] = useState(false);
+    try {
+      setLoading(true)
 
+      const res = await request('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password })
+      })
+
+      await AsyncStorage.setItem('token', res.token)
+      await AsyncStorage.setItem('user', JSON.stringify(res.user))
+
+      navigation.replace('Dashboard')
+    } catch (error) {
+      Alert.alert('Login Failed', error.message)
+    } finally {
+      setLoading(false)
+    }
+  }
   return (
     <ScrollView style={styles.container}>
       <TouchableOpacity style={styles.guestBtn}>
         <Text style={styles.guestText}>Continue as Guest</Text>
-        <Ionicons name="chevron-forward" size={20} color="#222" />
+        <Ionicons name='chevron-forward' size={20} color='#222' />
       </TouchableOpacity>
 
       <View style={styles.logoBox}>
         <Image
           source={require('../assets/logo.png')}
           style={styles.logo}
-          resizeMode="contain"
+          resizeMode='contain'
         />
         <Text style={styles.title}>Welcome Grocery Store</Text>
       </View>
 
       <View style={styles.form}>
         <View style={styles.inputBox}>
-          <MaterialIcons name="email" size={28} color="#555" />
+          <MaterialIcons name='email' size={28} color='#555' />
           <TextInput
-            placeholder="Email"
-            placeholderTextColor="#666"
+            placeholder='Email'
+            placeholderTextColor='#666'
             style={styles.input}
-            keyboardType="email-address"
+            keyboardType='email-address'
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize='none'
           />
         </View>
 
         <View style={styles.inputBox}>
-          <Ionicons name="lock-closed-outline" size={28} color="#555" />
+          <Ionicons name='lock-closed-outline' size={28} color='#555' />
           <TextInput
-            placeholder="Password"
-            placeholderTextColor="#666"
+            placeholder='Password'
+            placeholderTextColor='#666'
             style={styles.input}
             secureTextEntry={!showPassword}
+            value={password}
+            onChangeText={setPassword}
           />
           <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-            <Ionicons name="eye-outline" size={27} color="#aaa" />
+            <Ionicons name='eye-outline' size={27} color='#aaa' />
           </TouchableOpacity>
         </View>
 
@@ -58,9 +92,12 @@ const LoginScreen = ({navigation}) => {
           <Text style={styles.forgotText}>Forgot Password?</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.signInBtn}
-        onPress={()=>{navigation.navigate('Dashboard')}}>
-          <Text style={styles.signInText}>Sign In</Text>
+        <TouchableOpacity style={styles.signInBtn} onPress={handleLogin}>
+          {loading ? (
+            <ActivityIndicator color='#fff' />
+          ) : (
+            <Text style={styles.signInText}>Sign In</Text>
+          )}
         </TouchableOpacity>
 
         <Text style={styles.orText}>or</Text>
@@ -68,7 +105,7 @@ const LoginScreen = ({navigation}) => {
         <TouchableOpacity style={styles.googleBtn}>
           <Image
             source={{
-              uri: 'https://png.pngtree.com/png-vector/20230817/ourmid/pngtree-google-internet-icon-vector-png-image_9183287.png',
+              uri: 'https://png.pngtree.com/png-vector/20230817/ourmid/pngtree-google-internet-icon-vector-png-image_9183287.png'
             }}
             style={styles.googleIcon}
           />
@@ -76,45 +113,45 @@ const LoginScreen = ({navigation}) => {
         </TouchableOpacity>
       </View>
     </ScrollView>
-  );
-};
+  )
+}
 
-export default LoginScreen;
+export default LoginScreen
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FAFAFA',
-    paddingHorizontal: 28,
+    paddingHorizontal: 28
   },
   guestBtn: {
     marginTop: 38,
     alignSelf: 'flex-end',
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'center'
   },
   guestText: {
     fontSize: 18,
     color: '#222',
-    fontWeight: '400',
+    fontWeight: '400'
   },
   logoBox: {
     alignItems: 'center',
-    marginTop: 75,
+    marginTop: 75
   },
   logo: {
     width: 500,
     height: 500,
-    marginVertical:-150
+    marginVertical: -150
   },
   title: {
     fontSize: 21,
     color: '#222',
     marginTop: 8,
-    fontWeight: '400',
+    fontWeight: '400'
   },
   form: {
-    marginTop: 48,
+    marginTop: 48
   },
   inputBox: {
     height: 53,
@@ -125,21 +162,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 15,
     marginBottom: 18,
-    backgroundColor: '#fff',
+    backgroundColor: '#fff'
   },
   input: {
     flex: 1,
     fontSize: 15,
     marginLeft: 16,
-    color: '#222',
+    color: '#222'
   },
   forgotBtn: {
     alignSelf: 'flex-end',
-    marginBottom: 14,
+    marginBottom: 14
   },
   forgotText: {
     color: '#888',
-    fontSize: 18,
+    fontSize: 18
   },
   signInBtn: {
     height: 58,
@@ -147,17 +184,17 @@ const styles = StyleSheet.create({
     borderRadius: 7,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 4,
+    elevation: 4
   },
   signInText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 18
   },
   orText: {
     textAlign: 'center',
     fontSize: 18,
     color: '#333',
-    marginVertical: 10,
+    marginVertical: 10
   },
   googleBtn: {
     height: 57,
@@ -168,16 +205,15 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-
+    justifyContent: 'center'
   },
   googleIcon: {
     width: 24,
     height: 24,
-    marginRight: 14,
+    marginRight: 14
   },
   googleText: {
     fontSize: 18,
-    color: '#333',
-  },
-});
+    color: '#333'
+  }
+})

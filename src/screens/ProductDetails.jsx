@@ -5,9 +5,11 @@ import {
   Image,
   StyleSheet,
   TouchableOpacity,
-  ScrollView
+  ScrollView,
+  Alert
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
+import { request, getImageUrl } from '../api/api'
 
 const teal = '#0b8b8f'
 
@@ -16,7 +18,21 @@ export default function ProductDetails ({ route, navigation }) {
   const [qty, setQty] = useState(1)
 
   const total = product.price * qty
+const addToCart = async () => {
+  try {
+    await request("/cart/add", {
+      method: "POST",
+      body: JSON.stringify({
+        productId: product.id,
+        quantity: qty,
+      }),
+    });
 
+    Alert.alert("Success", "Product added to cart");
+  } catch (error) {
+    Alert.alert("Error", error.message);
+  }
+};
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -41,7 +57,11 @@ export default function ProductDetails ({ route, navigation }) {
           )}
 
           <Image
-            source={product.image}
+            source={
+              typeof product.image === 'number'
+                ? product.image
+                : { uri: getImageUrl(product.image) }
+            }
             style={styles.image}
             resizeMode='contain'
           />
@@ -117,7 +137,8 @@ export default function ProductDetails ({ route, navigation }) {
         </View>
 
         <View style={styles.actions}>
-          <TouchableOpacity style={styles.addCart}>
+          <TouchableOpacity style={styles.addCart}
+          onPress={addToCart}>
             <Text style={styles.addCartText}>Add to Cart</Text>
           </TouchableOpacity>
 

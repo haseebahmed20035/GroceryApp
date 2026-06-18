@@ -1,10 +1,27 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import ProductCard from "../components/ProductCard";
+import { request } from "../api/api";
 
 export default function CategoryScreen({ route, navigation }) {
-  const { category, products = [] } = route.params || {};
+  const { category, categoryId, products: passedProducts = [] } = route.params || {};
+  const [products, setProducts] = useState(passedProducts);
+
+  useEffect(() => {
+    if (categoryId) {
+      loadProducts();
+    }
+  }, [categoryId]);
+
+  const loadProducts = async () => {
+    try {
+      const res = await request(`/products/category/${categoryId}`);
+      setProducts(res.data);
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
 
   return (
     <View style={styles.container}>

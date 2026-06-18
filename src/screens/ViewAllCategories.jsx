@@ -1,14 +1,35 @@
-import React from "react";
-import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { categories, products } from "../data/storeData";
+import React from 'react'
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Image,
+  TouchableOpacity
+} from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
+import { request } from '../api/api'
 
-export default function ViewAllCategories({ navigation }) {
+export default function ViewAllCategories ({ navigation }) {
+  const [categories, setCategories] = useState([])
+
+  useEffect(() => {
+    loadCategories()
+  }, [])
+
+  const loadCategories = async () => {
+    try {
+      const res = await request('/categories')
+      setCategories(res.data)
+    } catch (error) {
+      console.log(error.message)
+    }
+  }
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={26} color="#111" />
+          <Ionicons name='arrow-back' size={26} color='#111' />
         </TouchableOpacity>
         <Text style={styles.title}>All Categories</Text>
       </View>
@@ -16,15 +37,15 @@ export default function ViewAllCategories({ navigation }) {
       <FlatList
         data={categories}
         numColumns={3}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={item => item.id.toString()}
         contentContainerStyle={{ padding: 14 }}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.item}
             onPress={() =>
-              navigation.navigate("CategoryScreen", {
-                category: item.name,
-                products: products.filter((p) => p.category === item.name),
+              navigation.navigate('CategoryScreen', {
+                categoryId: item.id,
+                category: item.name
               })
             }
           >
@@ -34,24 +55,24 @@ export default function ViewAllCategories({ navigation }) {
         )}
       />
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
+  container: { flex: 1, backgroundColor: '#fff' },
   header: {
     paddingTop: 45,
     paddingHorizontal: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 18
   },
-  title: { fontSize: 22, fontWeight: "700", color: "#111" },
+  title: { fontSize: 22, fontWeight: '700', color: '#111' },
   item: {
-    width: "33.33%",
-    alignItems: "center",
-    marginBottom: 25,
+    width: '33.33%',
+    alignItems: 'center',
+    marginBottom: 25
   },
-  image: { width: 70, height: 70, resizeMode: "contain" },
-  name: { marginTop: 8, textAlign: "center", fontSize: 13, color: "#333" },
-});
+  image: { width: 70, height: 70, resizeMode: 'contain' },
+  name: { marginTop: 8, textAlign: 'center', fontSize: 13, color: '#333' }
+})
