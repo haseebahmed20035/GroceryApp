@@ -2,22 +2,29 @@ const { OAuth2Client } = require('google-auth-library')
 const jwt = require('jsonwebtoken')
 const db = require('../config/db')
 
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
+const client = new OAuth2Client()
 
 exports.googleLogin = async (req, res) => {
   try {
-    const { token } = req.body
+    const { idToken, role } = req.body
 
-    if (!token) {
+    if (!idToken) {
       return res.status(400).json({
         success: false,
         message: 'Google token required',
       })
     }
 
+    // frontend se aaya role validate karo, warna default customer
+    const allowedRoles = ['customer', 'seller']
+    const userRole = allowedRoles.includes(role) ? role : 'customer'
+
     const ticket = await client.verifyIdToken({
-      idToken: token,
-      audience: process.env.GOOGLE_CLIENT_ID,
+      idToken,
+      audience: [
+        process.env.GOOGLE_ANDROID_CLIENT_ID, // native build ka token
+        process.env.GOOGLE_CLIENT_ID,          // web client (fallback)
+      ],
     })
 
     const payload = ticket.getPayload()
@@ -34,8 +41,8 @@ exports.googleLogin = async (req, res) => {
     if (users.length === 0) {
       const [result] = await db.query(
         `INSERT INTO users (name, email, google_id, profile_image, role, auth_provider)
-         VALUES (?, ?, ?, ?, 'customer', 'google')`,
-        [name, email, googleId, picture]
+         VALUES (?, ?, ?, ?, ?, 'google')`,
+        [name, email, googleId, picture, userRole]
       )
 
       user = {
@@ -44,7 +51,7 @@ exports.googleLogin = async (req, res) => {
         email,
         google_id: googleId,
         profile_image: picture,
-        role: 'customer',
+        role: userRole,
       }
     } else {
       user = users[0]
