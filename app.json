@@ -2,6 +2,7 @@
   "expo": {
     "name": "GroceryApp",
     "slug": "GroceryApp",
+    "scheme": "groceryapp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -10,6 +11,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.haseeb.groceryapp",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -20,6 +22,14 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "9632c69d-ee84-4223-98a1-586171c4f958"
+      }
+    },
+    "plugins": [
+      "expo-web-browser"
+    ]
   }
 }

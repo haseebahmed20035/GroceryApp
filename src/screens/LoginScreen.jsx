@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   View,
   Text,
@@ -14,11 +14,23 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons'
 import { ScrollView } from 'react-native-gesture-handler'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { request } from '../api/api'
+import * as WebBrowser from 'expo-web-browser'
+import * as Google from 'expo-auth-session/providers/google'
+
+WebBrowser.maybeCompleteAuthSession()
 const LoginScreen = ({ navigation }) => {
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
+  const [selectedRole, setSelectedRole] = useState('customer')
+
+  const [googleRequest, googleResponse, promptAsync] = Google.useAuthRequest({
+    expoClientId: 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com',
+    androidClientId: 'YOUR_ANDROID_CLIENT_ID.apps.googleusercontent.com',
+    webClientId: 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com'
+  })
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert('Error', 'Email and password required')
@@ -43,6 +55,41 @@ const LoginScreen = ({ navigation }) => {
       setLoading(false)
     }
   }
+  useEffect(() => {
+    const handleGoogleLogin = async () => {
+      if (googleResponse?.type !== 'success') return
+
+      try {
+        setGoogleLoading(true)
+
+        const idToken = googleResponse.authentication?.idToken
+
+        if (!idToken) {
+          Alert.alert('Google Login Failed', 'Google token not received')
+          return
+        }
+
+        const res = await request('/auth/google-login', {
+          method: 'POST',
+          body: JSON.stringify({
+            idToken,
+            role: selectedRole
+          })
+        })
+
+        await AsyncStorage.setItem('token', res.token)
+        await AsyncStorage.setItem('user', JSON.stringify(res.user))
+
+        navigation.replace('Dashboard')
+      } catch (error) {
+        Alert.alert('Google Login Failed', error.message)
+      } finally {
+        setGoogleLoading(false)
+      }
+    }
+
+    handleGoogleLogin()
+  }, [googleResponse])
   return (
     <ScrollView style={styles.container}>
       <TouchableOpacity style={styles.guestBtn}>
@@ -101,15 +148,59 @@ const LoginScreen = ({ navigation }) => {
         </TouchableOpacity>
 
         <Text style={styles.orText}>or</Text>
+        <View style={styles.roleBox}>
+          <TouchableOpacity
+            style={[
+              styles.roleBtn,
+              selectedRole === 'customer' && styles.activeRoleBtn
+            ]}
+            onPress={() => setSelectedRole('customer')}
+          >
+            <Text
+              style={[
+                styles.roleText,
+                selectedRole === 'customer' && styles.activeRoleText
+              ]}
+            >
+              Customer
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.googleBtn}>
-          <Image
-            source={{
-              uri: 'https://png.pngtree.com/png-vector/20230817/ourmid/pngtree-google-internet-icon-vector-png-image_9183287.png'
-            }}
-            style={styles.googleIcon}
-          />
-          <Text style={styles.googleText}>Continue with Google</Text>
+          <TouchableOpacity
+            style={[
+              styles.roleBtn,
+              selectedRole === 'seller' && styles.activeRoleBtn
+            ]}
+            onPress={() => setSelectedRole('seller')}
+          >
+            <Text
+              style={[
+                styles.roleText,
+                selectedRole === 'seller' && styles.activeRoleText
+              ]}
+            >
+              Seller
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <TouchableOpacity
+          style={styles.googleBtn}
+          disabled={!googleRequest || googleLoading}
+          onPress={() => promptAsync({ useProxy: true })}
+        >
+          {googleLoading ? (
+            <ActivityIndicator color='#333' />
+          ) : (
+            <>
+              <Image
+                source={{
+                  uri: 'https://png.pngtree.com/png-vector/20230817/ourmid/pngtree-google-internet-icon-vector-png-image_9183287.png'
+                }}
+                style={styles.googleIcon}
+              />
+              <Text style={styles.googleText}>Continue with Google</Text>
+            </>
+          )}
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -215,5 +306,29 @@ const styles = StyleSheet.create({
   googleText: {
     fontSize: 18,
     color: '#333'
+  },
+  roleBox: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 14,
+    gap: 10
+  },
+  roleBtn: {
+    borderWidth: 1,
+    borderColor: '#aaa',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 20
+  },
+  activeRoleBtn: {
+    backgroundColor: '#000',
+    borderColor: '#000'
+  },
+  roleText: {
+    color: '#333',
+    fontSize: 16
+  },
+  activeRoleText: {
+    color: '#fff'
   }
 })
