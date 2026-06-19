@@ -16,6 +16,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { request } from '../api/api'
 import * as WebBrowser from 'expo-web-browser'
 import * as Google from 'expo-auth-session/providers/google'
+import {
+  GOOGLE_ANDROID_CLIENT_ID,
+  GOOGLE_WEB_CLIENT_ID,
+} from '../config/googleConfig';
 
 WebBrowser.maybeCompleteAuthSession()
 const LoginScreen = ({ navigation }) => {
@@ -27,10 +31,9 @@ const LoginScreen = ({ navigation }) => {
   const [selectedRole, setSelectedRole] = useState('customer')
 
   const [googleRequest, googleResponse, promptAsync] = Google.useAuthRequest({
-    expoClientId: 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com',
-    androidClientId: 'YOUR_ANDROID_CLIENT_ID.apps.googleusercontent.com',
-    webClientId: 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com'
-  })
+  androidClientId: GOOGLE_ANDROID_CLIENT_ID,
+  webClientId: GOOGLE_WEB_CLIENT_ID,
+});
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert('Error', 'Email and password required')
@@ -186,7 +189,7 @@ const LoginScreen = ({ navigation }) => {
         <TouchableOpacity
           style={styles.googleBtn}
           disabled={!googleRequest || googleLoading}
-          onPress={() => promptAsync({ useProxy: true })}
+          onPress={() => promptAsync()}
         >
           {googleLoading ? (
             <ActivityIndicator color='#333' />
